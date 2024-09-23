@@ -1,0 +1,9 @@
+{
+  "DBUser": "user",
+  "DBPassword": "password",
+  "DBName": "mydb",
+  "DBHost": "localhost",
+  "DBPort": "5432",
+  "RedisAddress": "localhost:6379",
+  "RedisPassword": "your-redis-password"
+}
