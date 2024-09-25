@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"jeetcode-apis/api"
 	"jeetcode-apis/config"
 	"jeetcode-apis/internal/cache"
 	"jeetcode-apis/internal/db"
+	"jeetcode-apis/internal/service"
 	"log"
 )
 
@@ -24,13 +25,8 @@ func main() {
 		log.Fatalf("Could not connect to the redis: %v", err)
 	}
 
-	fmt.Println(database)
-	fmt.Println(cache)
-	// send database & cache to the problem service
+	problemService := service.NewProblemService(database, cache)
+	router := api.SetupRouter(problemService)
 
-	// Todo
-	// router := api.SetupRouter(todoService, postService)
-
-	// log.Println("Server running on port 8080")
-	// router.Run(":8080")
+	router.Run(":8080")
 }

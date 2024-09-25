@@ -2,9 +2,8 @@ package db
 
 import (
 	"fmt"
-	// "todo-list-api/config"
 	"jeetcode-apis/config"
-	// "todo-list-api/pkg/model"
+	"jeetcode-apis/pkg/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,7 +18,6 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	}
 
 	// Auto-migrate the database schemas
-	// db.AutoMigrate(&model.Todo{}, &model.Post{})
-
+	db.AutoMigrate(&model.Problem{})
 	return db, nil
 }

@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"fmt"
 	"jeetcode-apis/config"
 
 	"github.com/go-redis/redis/v8"
@@ -11,8 +10,6 @@ import (
 var ctx = context.Background()
 
 func Connect(cfg *config.Config) (*redis.Client, error) {
-
-	fmt.Printf("loaded config values, %v\n", cfg)
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddress,
