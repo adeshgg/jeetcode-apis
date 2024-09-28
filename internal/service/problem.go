@@ -1,9 +1,13 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"jeetcode-apis/internal/cache"
 	"jeetcode-apis/pkg/model"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -30,5 +34,44 @@ func (p *ProblemService) GetProblems() ([]model.Problem, error) {
 }
 
 func (p *ProblemService) CreateProblems(problem model.Problem) error {
-	return p.db.Create(&problem).Error
+
+	// Start a new transaction
+	tx := p.db.Begin()
+
+	// Ensure that transaction is rolled back in case of a panic
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Create(&problem).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// enqueue processing task to the redis queue
+	problemTask := model.ProblemTask{
+		ID:        uuid.New(),
+		ProblemId: problem.ID,
+		Link:      problem.Link,
+	}
+
+	// convert the task struct into a JSON string
+	jsonTask, err := json.Marshal(problemTask)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error while marshaling struct to json: %v", err)
+	}
+
+	if err := cache.EnqueueTask(p.redis, "problem-queue", string(jsonTask)); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error while adding task to the queue: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("error while committing transaction: %v", err)
+	}
+
+	return nil
 }
